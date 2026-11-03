@@ -1,0 +1,3 @@
+[somestore]
+uri = "https://example.com/remote"
+something = "somethingelse"

@@ -1,0 +1,25 @@
+[package]
+name = "opendal-config"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["serde", "env"]
+serde = ["dep:serde"]
+clap = ["dep:clap"]
+env = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+clap = { version = "4", features = ["derive"], optional = true }
+log = "0.4.35"
+
+[dev-dependencies]
+clap-verbosity-flag = "3.0.4"
+env_logger = "0.11.11"
+opendal = { version = "0.59.5", features = ["services-fs"] }
+toml = "1.1.8"
+
+[[example]]
+name = "example"
+required-features = ["serde", "clap", "env"]
