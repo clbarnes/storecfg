@@ -1,6 +1,6 @@
 //! Reading configuration from environment variables.
 
-use crate::{ConfigError, OperatorConfigCollector, Result};
+use crate::{ConfigError, StoreConfigCollector, Result};
 
 pub(crate) const NAME_SUFFIX_SEP: &str = "__";
 
@@ -41,7 +41,7 @@ where
     })
 }
 
-impl OperatorConfigCollector {
+impl StoreConfigCollector {
     /// Read all services configured in the process environment and add them to this collector.
     pub fn add_from_env(&mut self, prefix: &str) -> Result<(), ConfigError> {
         let env_vars = std::env::vars();

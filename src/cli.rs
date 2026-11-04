@@ -1,8 +1,8 @@
 //! Command-line argument support via `clap`.
 
-use crate::{OperatorConfig, parse_key_value};
+use crate::{StoreConfig, parse_key_value};
 
-/// Command-line arguments for configuring an operator.
+/// Command-line arguments for configuring an .
 ///
 /// Flatten into your own parser:
 ///
@@ -10,13 +10,13 @@ use crate::{OperatorConfig, parse_key_value};
 /// #[derive(clap::Parser)]
 /// struct Cli {
 ///     #[command(flatten)]
-///     store: opendal_config::OperatorArgs,
+///     store: storecfg::StoreArgs,
 /// }
 /// ```
 ///
 /// Usage: `my-cli https://mystore.com -o key=value -o anotherkey=anothervalue`
 #[derive(Debug, Clone, PartialEq, Eq, clap::Args)]
-pub struct OperatorArgs {
+pub struct StoreArgs {
     /// URI of the storage backend.
     pub uri: String,
     /// Additional backend options as 'key=value'; may be repeated.
@@ -32,9 +32,9 @@ pub fn parse_key_value_clap(s: &str) -> Result<(String, String), String> {
     }
 }
 
-impl From<OperatorArgs> for OperatorConfig {
-    fn from(args: OperatorArgs) -> Self {
-        let mut c = OperatorConfig::new(args.uri);
+impl From<StoreArgs> for StoreConfig {
+    fn from(args: StoreArgs) -> Self {
+        let mut c = StoreConfig::new(args.uri);
         c.extend_options(args.options);
         c
     }
@@ -50,13 +50,13 @@ mod tests {
         #[derive(Parser)]
         struct Cli {
             #[command(flatten)]
-            store: OperatorArgs,
+            store: StoreArgs,
         }
         let cli = Cli::parse_from(["x", "https://mystore.com", "-o", "k=v", "-o", "k2=v2"]);
-        let c: OperatorConfig = cli.store.into();
+        let c: StoreConfig = cli.store.into();
         assert_eq!(
             c,
-            OperatorConfig::new("https://mystore.com")
+            StoreConfig::new("https://mystore.com")
                 .with_option("k", "v")
                 .with_option("k2", "v2")
         );

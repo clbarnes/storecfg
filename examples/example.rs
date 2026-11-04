@@ -2,12 +2,12 @@ use std::{collections::BTreeMap, path::PathBuf};
 
 use clap::Parser;
 use clap_verbosity_flag::Verbosity;
-use opendal_config::{OperatorArgs, OperatorConfigCollector};
+use storecfg::{StoreArgs, StoreConfigCollector};
 
 #[derive(Debug, Parser)]
 struct Cli {
     #[command(flatten)]
-    store: OperatorArgs,
+    store: StoreArgs,
     #[clap(long, short)]
     config: Vec<PathBuf>,
     #[command(flatten)]
@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .filter_level(cli.verbosity.into())
         .init();
 
-    let mut collector = OperatorConfigCollector::default();
+    let mut collector = StoreConfigCollector::default();
     collector.add_config("", cli.store.into());
 
     for path in cli.config {
@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    collector.add_from_env("OPENDAL_SERVICE")?;
+    collector.add_from_env("STORAGE")?;
 
     let (configs, invalids) = collector.into_configs(true);
     if !invalids.is_empty() {

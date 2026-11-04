@@ -1,17 +1,18 @@
-# opendal-config
+# storecfg
 
-Helper for applications which need to define Apache OpenDAL™ services and layers.
+Helper for applications which need to define [Apache OpenDAL™](https://crates.io/crates/opendal) operators or [object_store](https://crates.io/crates/object_store) object stores from configuration.
 
 ## Usage
 
 See [`example.rs`](./examples/example.rs) for a concrete example.
 
-The goal is to produce an [`OperatorConfig`] for one or more services.
-This can be converted into a `(url, options_map)` tuple with [`OperatorConfig::into_tuple`],
-which can then be passed in to [`opendal::Operator::from_uri`].
+The goal is to produce an [`StoreConfig`] for one or more services.
+This can be converted into a `(url, options_map)` tuple with [`StoreConfig::into_tuple`],
+which can then be passed in to [`opendal::Store::from_uri`]
+or [`object_store::parse_url_opts`].
 
-The [`OperatorConfigCollector`] gathers configuration from different sources.
-Each operator has a name (with a single anonymous operator represented by an empty string),
+The [`StoreConfigCollector`] gathers configuration from different sources.
+Each store has a name (with a single anonymous store represented by an empty string),
 must have a config key called `uri`,
 and may have any number of additional config key-value pairs.
 
@@ -19,11 +20,11 @@ and may have any number of additional config key-value pairs.
 
 Requires the `serde` feature (default).
 
-The [`OperatorConfig`] implements `serde::{Serialize, Deserialize}` from a map of string to string.
+The [`StoreConfig`] implements `serde::{Serialize, Deserialize}` from a map of string to string.
 This means they can be deserialised from sources like JSON or TOML:
 
 ```rust ignore
-use opendal_config::OperatorConfig;
+use storecfg::StoreConfig;
 
 let json_str = r#"{
   "my_service": {
@@ -33,7 +34,7 @@ let json_str = r#"{
   }
 }"#;
 
-let o1: BTreeMap<String, OperatorConfig> = serde_json::from_str(json_str).unwrap();
+let o1: BTreeMap<String, StoreConfig> = serde_json::from_str(json_str).unwrap();
 
 let toml_str = r#"
 [my_service]
@@ -42,7 +43,7 @@ username = "alice"
 password = "Hunter2"
 "#;
 
-let o2: BTreeMap<String, OperatorConfig> = toml::from_str(toml_str).unwrap();
+let o2: BTreeMap<String, StoreConfig> = toml::from_str(toml_str).unwrap();
 ```
 
 ### Environment variables
@@ -54,16 +55,16 @@ It is recommended that,
 if you intend to configure any of your services with environment variables,
 they should be all be lower-case.
 
-[`OperatorConfig::add_from_env`] takes a string which prefixes all configuration (e.g. `"OPENDAL_SERVICE"`).
+[`StoreConfig::add_from_env`] takes a string which prefixes all configuration (e.g. `"STORAGE_"`).
 The key of the configuration item is prefixed with a double-underscore `__`.
-To configure the anonymous operator, simply use the prefix, a double underscore, and the key (`OPENDAL_SERVICE__URI="https://..."`).
-Otherwise, add an underscore and the name operator name after the prefix.
+To configure the anonymous store, simply use the prefix, a double underscore, and the key (`STORAGE__URI="https://..."`).
+Otherwise, add an underscore and the store name after the prefix.
 
-The operator name and configuration key will both be normalised to lower case.
+The store name and configuration key will both be normalised to lower case when collected from environment variables.
 
-For example, given the prefix `"OPENDAL_SERVICE"`,
-the environment variable key-value pair `OPENDAL_SERVICE_SOME_OP__USER_NAME="alice"`
-would configure the operator `some_op`, adding the key `user_name` with the value `alice`.
+For example, given the prefix `"STORAGE"`,
+the environment variable key-value pair `STORAGE_SOME_STORE__USER_NAME="alice"`
+would configure the store `some_store`, adding the key `user_name` with the value `alice`.
 
 ### CLI arguments
 
@@ -77,7 +78,7 @@ Requires the `clap` feature.
 
 [`cli::parse_key_value_clap`] can be used as a clap `value_parser`.
 
-[`cli::OperatorArgs`] is a positional argument and a `-o`/`--option` option which can be given multiple times and takes options in the `key=value` form.
+[`cli::StoreArgs`] is a positional argument and a `-o`/`--option` option which can be given multiple times and takes options in the `key=value` form.
 This can be added to a `clap::Parser` struct with `#[command(flatten)]`.
 
 ```rust ignore
@@ -86,13 +87,13 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 struct Cli {
     #[command(flatten)]
-    store: opendal_config::cli::OperatorArgs,
+    store: storecfg::cli::StoreArgs,
 }
 
 // `my_cli https://mystore.com -o a=b -o c=d`
 let args = Cli::parse();
-let conf = opendal_config::OperatorConfig::from(args.store);
-// OperatorConfig {
+let conf = storecfg::StoreConfig::from(args.store);
+// StoreConfig {
 //   uri: "https://mystore.com",
 //   options: {
 //     "a": "b",

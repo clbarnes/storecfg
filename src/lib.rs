@@ -7,20 +7,20 @@ pub mod envvar;
 pub mod error;
 
 #[cfg(feature = "clap")]
-pub use cli::{OperatorArgs, parse_key_value_clap};
+pub use cli::{StoreArgs as StoreArgs, parse_key_value_clap};
 #[cfg(feature = "env")]
 pub use envvar::all_from_env_vars;
 pub use error::{ConfigError, Result};
 
 const URI_KEY: &str = "uri";
 
-type OperatorName = String;
+type StoreName = String;
 type ConfigKey = String;
 type ConfigValue = String;
 
 #[derive(Debug, Clone, Default)]
-pub struct OperatorConfigCollector {
-    pub name_cfg_values: BTreeMap<OperatorName, BTreeMap<ConfigKey, Values>>,
+pub struct StoreConfigCollector {
+    pub name_cfg_values: BTreeMap<StoreName, BTreeMap<ConfigKey, Values>>,
 }
 
 /// Parse a `key=value` string. Only the first `=` is significant.
@@ -82,8 +82,8 @@ impl From<ConfigValue> for Values {
     }
 }
 
-impl OperatorConfigCollector {
-    pub fn add_config(&mut self, name: impl AsRef<str>, config: OperatorConfig) {
+impl StoreConfigCollector {
+    pub fn add_config(&mut self, name: impl AsRef<str>, config: StoreConfig) {
         let name = name.as_ref();
         self.add(name, URI_KEY, config.uri);
         for (key, value) in config.options {
@@ -112,7 +112,7 @@ impl OperatorConfigCollector {
         }
     }
 
-    pub fn update(&mut self, other: OperatorConfigCollector) {
+    pub fn update(&mut self, other: StoreConfigCollector) {
         use std::collections::btree_map::Entry;
         for (name, key_values) in other.name_cfg_values {
             let entry = self.name_cfg_values.entry(name).or_default();
@@ -129,7 +129,7 @@ impl OperatorConfigCollector {
         }
     }
 
-    /// Convert into a map of `OperatorConfig`s, and a set of names for which no URI was found.
+    /// Convert into a map of `StoreConfig`s, and a set of names for which no URI was found.
     ///
     /// If `prefer_first` is true, the first value added for each key is used.
     /// If false, the last key is used instead.
@@ -137,8 +137,8 @@ impl OperatorConfigCollector {
         self,
         prefer_first: bool,
     ) -> (
-        BTreeMap<OperatorName, OperatorConfig>,
-        BTreeSet<OperatorName>,
+        BTreeMap<StoreName, StoreConfig>,
+        BTreeSet<StoreName>,
     ) {
         let mut missing_uris = BTreeSet::new();
         let mut configs = BTreeMap::new();
@@ -147,7 +147,7 @@ impl OperatorConfigCollector {
                 missing_uris.insert(name);
                 continue;
             };
-            let mut config = OperatorConfig::new(uri.choose(prefer_first));
+            let mut config = StoreConfig::new(uri.choose(prefer_first));
             for (key, values) in key_values {
                 config.options.insert(key, values.choose(prefer_first));
             }
@@ -157,7 +157,7 @@ impl OperatorConfigCollector {
     }
 }
 
-/// A URI plus additional options from which an [`Operator`] can be built.
+/// A URI plus additional options from which an [`Store`] can be built.
 ///
 /// With the `serde` feature this can be (de)serialized, e.g.
 ///
@@ -169,7 +169,7 @@ impl OperatorConfigCollector {
 /// `options` may be omitted.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct OperatorConfig {
+pub struct StoreConfig {
     pub uri: String,
     #[cfg_attr(
         feature = "serde",
@@ -178,7 +178,7 @@ pub struct OperatorConfig {
     pub options: BTreeMap<String, String>,
 }
 
-impl OperatorConfig {
+impl StoreConfig {
     pub fn new(uri: impl Into<String>) -> Self {
         Self {
             uri: uri.into(),
@@ -186,7 +186,7 @@ impl OperatorConfig {
         }
     }
 
-    /// Convert into a `(uri, options)` tuple suitable for passing to [opendal::Operator::from_uri].
+    /// Convert into a `(uri, options)` tuple suitable for passing to [opendal::Store::from_uri] or [object_store::parse_url_opts].
     pub fn into_tuple(self) -> (String, BTreeMap<String, String>) {
         (self.uri, self.options)
     }
@@ -207,7 +207,7 @@ impl OperatorConfig {
     }
 
     /// Overlay `other` on top of `self`. The `other` URI and options take precedence.
-    pub fn merge(&mut self, other: OperatorConfig) -> &mut Self {
+    pub fn merge(&mut self, other: StoreConfig) -> &mut Self {
         self.uri = other.uri;
         self.options.extend(other.options);
         self
