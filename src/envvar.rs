@@ -1,6 +1,6 @@
 //! Reading configuration from environment variables.
 
-use crate::{ConfigError, StoreConfigCollector, Result};
+use crate::{ConfigError, Result, StoreConfigCollector};
 
 pub(crate) const NAME_SUFFIX_SEP: &str = "__";
 

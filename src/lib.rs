@@ -7,7 +7,7 @@ pub mod envvar;
 pub mod error;
 
 #[cfg(feature = "clap")]
-pub use cli::{StoreArgs as StoreArgs, parse_key_value_clap};
+pub use cli::{StoreArgs, parse_key_value_clap};
 #[cfg(feature = "env")]
 pub use envvar::all_from_env_vars;
 pub use error::{ConfigError, Result};
@@ -136,10 +136,7 @@ impl StoreConfigCollector {
     pub fn into_configs(
         self,
         prefer_first: bool,
-    ) -> (
-        BTreeMap<StoreName, StoreConfig>,
-        BTreeSet<StoreName>,
-    ) {
+    ) -> (BTreeMap<StoreName, StoreConfig>, BTreeSet<StoreName>) {
         let mut missing_uris = BTreeSet::new();
         let mut configs = BTreeMap::new();
         for (name, mut key_values) in self.name_cfg_values {
