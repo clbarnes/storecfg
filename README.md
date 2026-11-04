@@ -6,10 +6,10 @@ Helper for applications which need to define [Apache OpenDAL™](https://crates.
 
 See [`example.rs`](./examples/example.rs) for a concrete example.
 
-The goal is to produce an [`StoreConfig`] for one or more services.
+The goal is to produce a [`StoreConfig`] for one or more services.
 This can be converted into a `(url, options_map)` tuple with [`StoreConfig::into_tuple`],
-which can then be passed in to [`opendal::Store::from_uri`]
-or [`object_store::parse_url_opts`].
+which can then be passed in to [`opendal::Operator::from_uri`](https://docs.rs/opendal/latest/opendal/struct.Operator.html#method.from_uri)
+or [`object_store::parse_url_opts`](https://docs.rs/object_store/latest/object_store/fn.parse_url_opts.html).
 
 The [`StoreConfigCollector`] gathers configuration from different sources.
 Each store has a name (with a single anonymous store represented by an empty string),
@@ -28,7 +28,7 @@ use storecfg::StoreConfig;
 
 let json_str = r#"{
   "my_service": {
-    "url": "https://my_store.com",
+    "uri": "https://my_store.com",
     "username": "alice",
     "password": "Hunter2"
   }
@@ -45,6 +45,10 @@ password = "Hunter2"
 
 let o2: BTreeMap<String, StoreConfig> = toml::from_str(toml_str).unwrap();
 ```
+
+Note that if you are using a config file in combination with other sources (arguments, environment variables),
+you probably want to deserialise into an `impl IntoIterator<Item = (String, String)>` (e.g. a HashMap),
+in case the required `uri` field is provided by another source.
 
 ### Environment variables
 

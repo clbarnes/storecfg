@@ -175,7 +175,7 @@ impl StoreConfigCollector {
     }
 }
 
-/// A URI plus additional options from which an [`Store`] can be built.
+/// A URI plus additional options from which a store can be built.
 ///
 /// With the `serde` feature this can be (de)serialized, e.g.
 ///
@@ -204,7 +204,8 @@ impl StoreConfig {
         }
     }
 
-    /// Convert into a `(uri, options)` tuple suitable for passing to [opendal::Store::from_uri] or [object_store::parse_url_opts].
+    /// Convert into a `(uri, options)` tuple suitable for passing to [`opendal::Operator::from_uri`](https://docs.rs/opendal/latest/opendal/struct.Operator.html#method.from_uri)
+    /// or [`object_store::parse_url_opts`](https://docs.rs/object_store/latest/object_store/fn.parse_url_opts.html).
     pub fn into_tuple(self) -> (String, BTreeMap<String, String>) {
         (self.uri, self.options)
     }
