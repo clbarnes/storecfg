@@ -43,12 +43,14 @@ where
 
 impl StoreConfigCollector {
     /// Read all services configured in the process environment and add them to this collector.
-    pub fn add_from_env(&mut self, prefix: &str) -> Result<(), ConfigError> {
+    pub fn add_from_env(&mut self, prefix: &str) -> Result<usize, ConfigError> {
         let env_vars = std::env::vars();
+        let mut count = 0;
         for (name, key, value) in all_from_env_vars(prefix, env_vars) {
             self.add(name, key, value);
+            count += 1;
         }
-        Ok(())
+        Ok(count)
     }
 }
 

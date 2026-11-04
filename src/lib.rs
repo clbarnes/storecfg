@@ -83,12 +83,27 @@ impl From<ConfigValue> for Values {
 }
 
 impl StoreConfigCollector {
-    pub fn add_config(&mut self, name: impl AsRef<str>, config: StoreConfig) {
+    pub fn add_config(&mut self, name: impl AsRef<str>, config: StoreConfig) -> usize {
         let name = name.as_ref();
+        let count = config.options.len() + 1;
         self.add(name, URI_KEY, config.uri);
         for (key, value) in config.options {
             self.add(name, key, value);
         }
+        count
+    }
+
+    pub fn add_many(
+        &mut self,
+        name: impl AsRef<str>,
+        configs: impl IntoIterator<Item = (impl AsRef<str>, impl Into<String>)>,
+    ) -> usize {
+        let mut count = 0;
+        for (k, v) in configs {
+            self.add(name.as_ref(), k, v);
+            count += 1;
+        }
+        count
     }
 
     pub fn add(&mut self, name: impl AsRef<str>, key: impl AsRef<str>, value: impl Into<String>) {
@@ -112,21 +127,27 @@ impl StoreConfigCollector {
         }
     }
 
-    pub fn update(&mut self, other: StoreConfigCollector) {
+    /// Count the number of fields added and updated.
+    pub fn update(&mut self, other: StoreConfigCollector) -> (usize, usize) {
         use std::collections::btree_map::Entry;
+        let mut added = 0;
+        let mut updated = 0;
         for (name, key_values) in other.name_cfg_values {
             let entry = self.name_cfg_values.entry(name).or_default();
             for (key, values) in key_values {
                 match entry.entry(key) {
                     Entry::Vacant(vacant_entry) => {
+                        added += 1;
                         vacant_entry.insert(values);
                     }
                     Entry::Occupied(occupied_entry) => {
+                        updated += 1;
                         occupied_entry.into_mut().push(values.into_last());
                     }
                 }
             }
         }
+        (added, updated)
     }
 
     /// Convert into a map of `StoreConfig`s, and a set of names for which no URI was found.
