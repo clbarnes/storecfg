@@ -101,3 +101,12 @@ let conf = storecfg::StoreConfig::from(args.store);
 //   }
 // }
 ```
+
+## Configuration keys
+
+Other than `"uri"`, the keys you need to set and the form their values need to take (other than being string-like) will vary based on the store and the implementation.
+
+`object_store`s' configuration are documented in the [builder structs](https://docs.rs/object_store/latest/object_store/#available-objectstore-implementations).
+`opendal` operators' configuration are documented [on the website](https://opendal.apache.org/services/).
+In both cases, 3rd party crates can provide additional backends which need their own configuration;
+you will need to compile support for them separately.
