@@ -19,12 +19,10 @@ where
 {
     vars.into_iter().filter_map(|(k, v)| {
         let kref = k.as_ref();
-        log::debug!("Reading env var: {kref}");
         let (leader, key) = kref.rsplit_once(NAME_SUFFIX_SEP)?;
         if leader.len() < prefix.len() {
             return None;
         }
-        log::debug!("Leader: {leader}, key: {key}");
 
         if !&leader[..prefix.len()].eq_ignore_ascii_case(prefix) {
             return None;
