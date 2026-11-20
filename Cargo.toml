@@ -2,6 +2,12 @@
 name = "storecfg"
 version = "0.1.0"
 edition = "2024"
+authors = ["Chris Barnes <chris.barnes@gerbi-gmb.de>"]
+description = "Helper for configuring OpenDAL operators or object_store object stores for applications"
+license = "MIT"
+repository = "https://github.com/clbarnes/storecfg"
+keywords = ["opendal", "object_store", "clap", "config", "cli"]
+categories = ["config", "command-line-interface", "filesystem"]
 
 [features]
 default = ["serde", "env"]
